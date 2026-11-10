@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>PWA Cluster System</title>
+    <style>
+      :root {
+        --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        --card-bg: #ffffff;
+        --text-primary: #0f172a;
+        --text-secondary: #64748b;
+        --accent: #4f46e5;
+        --accent-hover: #4338ca;
+        --badge-bg: #e0e7ff;
+        --badge-text: #3730a3;
+        --border: #e2e8f0;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg-gradient);
+        color: var(--text-primary);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 440px;
+        padding: 32px;
+        box-shadow:
+          0 10px 25px -5px rgba(0, 0, 0, 0.05),
+          0 8px 10px -6px rgba(0, 0, 0, 0.01);
+      }
+
+      /* 🟢 CABECERA CON EL NODO DISCRETO Y PEQUEÑO */
+      .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+
+      .app-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+
+      /* Etiqueta pequeña del nodo respondedor */
+      .node-badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: var(--badge-bg);
+        color: var(--badge-text);
+        padding: 4px 10px;
+        border-radius: 12px;
+        letter-spacing: 0.3px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .node-badge::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        background-color: var(--accent);
+        border-radius: 50%;
+      }
+
+      /* SECCIÓN PRINCIPAL CON CONTENIDO DESTACADO */
+      .main-metric {
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 20px;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .main-metric .label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+
+      .main-metric .value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--accent);
+      }
+
+      /* SECCIÓN DE DETALLES TÉCNICOS */
+      .details-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed var(--border);
+      }
+
+      .detail-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+
+      .detail-item span {
+        color: var(--text-secondary);
+      }
+
+      .detail-item strong {
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+
+      /* BOTÓN PRINCIPAL */
+      .btn {
+        width: 100%;
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 14px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+      }
+
+      .btn:hover {
+        background: var(--accent-hover);
+        transform: translateY(-1px);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="top-bar">
+        <h1 class="app-title">Panel de Control PWA</h1>
+        <!-- NODO RESPONDEDOR (Ubicación discreta en pequeño) -->
+        <div class="node-badge" id="nodo-name">Cargando...</div>
+      </div>
+
+      <!-- Valor principal destacado: ID de la Sesión Compartida -->
+      <div class="main-metric">
+        <div class="label">ID Sesión Compartida</div>
+        <div class="value" id="session-id">-</div>
+      </div>
+
+      <!-- Lista limpia de detalles secundarios -->
+      <div class="details-list">
+        <div class="detail-item">
+          <span>Peticiones registradas</span>
+          <strong id="session-views">-</strong>
+        </div>
+        <div class="detail-item">
+          <span>Puerto Activo</span>
+          <strong id="nodo-puerto">-</strong>
+        </div>
+        <div class="detail-item">
+          <span>Entorno / Respuesta</span>
+          <strong id="node-env">-</strong>
+        </div>
+      </div>
+
+      <button class="btn" onclick="probarNodo()">Probar Siguiente Nodo</button>
+    </div>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/sw.js");
+      }
+
+      async function probarNodo() {
+        const startTime = performance.now();
+        try {
+          const res = await fetch("/api/info");
+          const data = await res.json();
+          const endTime = performance.now();
+          const latency = Math.round(endTime - startTime);
+
+          // Actualiza el nodo en el badge pequeño superior
+          document.getElementById("nodo-name").innerText = data.nodo;
+
+          // Muestra los demás datos en el panel
+          document.getElementById("session-id").innerText = data.sessionId;
+          document.getElementById("session-views").innerText =
+            `${data.visitasEnSesion} visitas`;
+          document.getElementById("nodo-puerto").innerText = `:${data.puerto}`;
+          document.getElementById("node-env").innerText =
+            `${data.entorno} (${latency}ms)`;
+        } catch (err) {
+          document.getElementById("nodo-name").innerText = "Offline";
+          document.getElementById("session-id").innerText = "Error";
+        }
+      }
+
+      probarNodo();
+    </script>
+  </body>
+</html>
