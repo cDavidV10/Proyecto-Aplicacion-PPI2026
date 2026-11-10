@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "concurrently --kill-others --names nodo1,nodo2,nodo3,proxy \"npm run start:node1\" \"npm run start:node2\" \"npm run start:node3\" \"npm run start:proxy\"",
     "start:proxy": "node server/proxy.js",
     "start:node1": "cross-env PORT=3001 NODE_NAME=Nodo-1 node server/index.js",
     "start:node2": "cross-env PORT=3002 NODE_NAME=Nodo-2 node server/index.js",
@@ -23,6 +24,7 @@
     "redis": "^6.3.1"
   },
   "devDependencies": {
+    "concurrently": "^10.0.7",
     "cross-env": "^10.1.0"
   }
 }

@@ -1,5 +1,5 @@
-const CACHE_NAME = "pwa-nodos-v4";
-const ASSETS = ["/", "/index.html", "/manifest.json"];
+const CACHE_NAME = "pwa-nodos-v5";
+const ASSETS = ["/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -26,13 +26,25 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  if (event.request.url.includes("/api/")) {
-    event.respondWith(fetch(event.request));
-  } else {
-    event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        return cachedResponse || fetch(event.request);
-      }),
-    );
+  const { request } = event;
+  if (request.method !== "GET" || request.url.includes("/api/")) {
+    event.respondWith(fetch(request));
+    return;
   }
+  // Red primero para la página (evita ver versiones viejas); caché como respaldo offline
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((c) => c.put("/index.html", copy));
+          return res;
+        })
+        .catch(() => caches.match("/index.html")),
+    );
+    return;
+  }
+  event.respondWith(
+    caches.match(request).then((cached) => cached || fetch(request)),
+  );
 });

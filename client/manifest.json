@@ -3,14 +3,15 @@
   "name": "PWA 3 Nodos Demo",
   "icons": [
     {
-      "src": "https://via.placeholder.com/192",
+      "src": "/icon-192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "https://via.placeholder.com/512",
+      "src": "/icon-512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
   "start_url": "/",
