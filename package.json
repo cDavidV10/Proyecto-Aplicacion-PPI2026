@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start:proxy": "node server/proxy.js",
     "start:node1": "cross-env PORT=3001 NODE_NAME=Nodo-1 node server/index.js",
     "start:node2": "cross-env PORT=3002 NODE_NAME=Nodo-2 node server/index.js",
     "start:node3": "cross-env PORT=3003 NODE_NAME=Nodo-3 node server/index.js"
@@ -13,10 +14,13 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "connect-redis": "^10.0.0",
+    "cors": "^2.8.5",
     "dotenv": "18.0.10",
     "express": "^5.3.0",
     "express-http-proxy": "^2.1.2",
-    "express-session": "^1.19.0"
+    "express-session": "^1.19.0",
+    "redis": "^6.3.1"
   },
   "devDependencies": {
     "cross-env": "^10.1.0"

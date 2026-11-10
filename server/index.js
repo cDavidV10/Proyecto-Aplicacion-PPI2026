@@ -1,52 +1,88 @@
 import express from "express";
 import session from "express-session";
-import { createServer } from "http";
-import path from "path";
-import { fileURLToPath } from "url";
-import { config } from "./config.js";
+import { RedisStore } from "connect-redis";
+import { createClient } from "redis";
+import cors from "cors";
+import dotenv from "dotenv";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+dotenv.config();
+
+if (!process.env.SESSION_SECRET) {
+  throw new Error("Falta SESSION_SECRET");
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const NODE_NAME = process.env.NODE_NAME || `Nodo-${PORT}`;
+const NODE_NAME = process.env.NODE_NAME || `Nodo-Puerto-${PORT}`;
 
-// Configuración de Sesión Compartida
+const redisClient = createClient({
+  url: process.env.REDIS_URL || "redis://localhost:6379",
+});
+
+redisClient.on("error", (err) => console.error("[Redis Error]", err));
+await redisClient.connect();
+
+app.set("trust proxy", 1);
+
 app.use(
-  session({
-    secret: config.sessionSecret,
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false, maxAge: 1000 * 60 * 60 },
+  cors({
+    origin: true,
+    credentials: true,
   }),
 );
 
 app.use(express.json());
 
-// Sirve los archivos estáticos de la PWA desde la carpeta ../client
-app.use(express.static(path.join(__dirname, "../client")));
+app.use(
+  session({
+    store: new RedisStore({ client: redisClient, prefix: "pwa_cluster:" }),
+    name: "pwa_cluster_sid",
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+    },
+  }),
+);
 
-// Endpoint API para verificar qué nodo responde y mantener la sesión
-app.get("/api/info", (req, res) => {
-  if (!req.session.views) {
-    req.session.views = 1;
-    req.session.userSessionId = Math.random().toString(36).substring(7);
-  } else {
-    req.session.views++;
+const USUARIOS = { admin: "1234" };
+
+app.post("/api/login", (req, res) => {
+  const { usuario, clave } = req.body;
+
+  if (USUARIOS[usuario] && USUARIOS[usuario] === clave) {
+    req.session.usuario = usuario;
+    return res.json({ ok: true, usuario, nodo: NODE_NAME });
   }
+
+  res.status(401).json({ ok: false, mensaje: "Credenciales incorrectas" });
+});
+
+app.post("/api/logout", (req, res) => {
+  req.session.destroy(() => {
+    res.clearCookie("pwa_cluster_sid");
+    res.json({ ok: true });
+  });
+});
+
+app.get("/api/info", (req, res) => {
+  req.session.views = (req.session.views || 0) + 1;
 
   res.json({
     nodo: NODE_NAME,
     puerto: PORT,
-    sessionId: req.session.userSessionId,
-    visitasEnSesion: req.session.views,
-    entorno: config.env,
+    sessionId: req.sessionID ? req.sessionID.substring(0, 6) : "N/A",
+    fullSessionId: req.sessionID,
+    visitas: req.session.views,
+    usuario: req.session.usuario || null,
+    env: process.env.NODE_ENV || "development",
   });
 });
 
-const server = createServer(app);
-
-server.listen(PORT, () => {
-  console.log(`🚀 ${NODE_NAME} corriendo en puerto ${PORT}`);
+app.listen(PORT, () => {
+  console.log(`[${NODE_NAME}] listo y escuchando en http://localhost:${PORT}`);
 });

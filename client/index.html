@@ -3,229 +3,270 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Demostración de Cluster PWA</title>
     <link rel="manifest" href="/manifest.json" />
-    <title>PWA Cluster System</title>
+    <meta name="theme-color" content="#4f46e5" />
     <style>
-      :root {
-        --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-        --card-bg: #ffffff;
-        --text-primary: #0f172a;
-        --text-secondary: #64748b;
-        --accent: #4f46e5;
-        --accent-hover: #4338ca;
-        --badge-bg: #e0e7ff;
-        --badge-text: #3730a3;
-        --border: #e2e8f0;
-      }
-
       * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
-      }
-
-      body {
         font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: var(--bg-gradient);
-        color: var(--text-primary);
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+      }
+      body {
+        background-color: #f3f4f6;
         display: flex;
         justify-content: center;
         align-items: center;
         min-height: 100vh;
         padding: 20px;
       }
-
       .card {
-        background: var(--card-bg);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        width: 100%;
-        max-width: 440px;
-        padding: 32px;
+        background: #ffffff;
+        border-radius: 16px;
         box-shadow:
-          0 10px 25px -5px rgba(0, 0, 0, 0.05),
-          0 8px 10px -6px rgba(0, 0, 0, 0.01);
+          0 10px 25px -5px rgba(0, 0, 0, 0.1),
+          0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 420px;
+        padding: 32px 24px;
+        text-align: center;
       }
-
-      /* 🟢 CABECERA CON EL NODO DISCRETO Y PEQUEÑO */
-      .top-bar {
+      .header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 24px;
       }
-
-      .app-title {
-        font-size: 1.1rem;
+      .title {
+        font-size: 1.25rem;
         font-weight: 700;
-        color: var(--text-primary);
+        color: #111827;
       }
-
-      /* Etiqueta pequeña del nodo respondedor */
-      .node-badge {
+      .badge {
+        background-color: #e0e7ff;
+        color: #4338ca;
         font-size: 0.75rem;
         font-weight: 600;
-        background: var(--badge-bg);
-        color: var(--badge-text);
         padding: 4px 10px;
+        border-radius: 9999px;
+      }
+      .session-box {
+        background-color: #f9fafb;
+        border: 1px solid #e5e7eb;
         border-radius: 12px;
-        letter-spacing: 0.3px;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
+        padding: 16px;
+        margin-bottom: 24px;
       }
-
-      .node-badge::before {
-        content: "";
-        width: 6px;
-        height: 6px;
-        background-color: var(--accent);
-        border-radius: 50%;
-      }
-
-      /* SECCIÓN PRINCIPAL CON CONTENIDO DESTACADO */
-      .main-metric {
-        background: #f8fafc;
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 20px;
-        margin-bottom: 20px;
-        text-align: center;
-      }
-
-      .main-metric .label {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 1px;
+      .session-label {
+        font-size: 0.75rem;
         font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6b7280;
         margin-bottom: 6px;
       }
-
-      .main-metric .value {
-        font-size: 1.8rem;
+      .session-id {
+        font-size: 1.75rem;
         font-weight: 800;
-        color: var(--accent);
+        color: #4f46e5;
+        letter-spacing: 1px;
       }
-
-      /* SECCIÓN DE DETALLES TÉCNICOS */
-      .details-list {
+      .info-list {
         display: flex;
         flex-direction: column;
         gap: 12px;
         margin-bottom: 24px;
+        font-size: 0.875rem;
       }
-
-      .detail-item {
+      .info-item {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        font-size: 0.9rem;
-        padding-bottom: 10px;
-        border-bottom: 1px dashed var(--border);
+        color: #4b5563;
       }
-
-      .detail-item:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
-      }
-
-      .detail-item span {
-        color: var(--text-secondary);
-      }
-
-      .detail-item strong {
-        color: var(--text-primary);
+      .info-value {
         font-weight: 600;
+        color: #111827;
       }
-
-      /* BOTÓN PRINCIPAL */
       .btn {
         width: 100%;
-        background: var(--accent);
+        background-color: #4f46e5;
         color: white;
-        border: none;
-        padding: 14px;
-        font-size: 0.95rem;
         font-weight: 600;
-        border-radius: 12px;
+        font-size: 0.95rem;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 10px;
         cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+        transition:
+          background-color 0.2s,
+          transform 0.1s;
       }
-
       .btn:hover {
-        background: var(--accent-hover);
-        transform: translateY(-1px);
+        background-color: #4338ca;
       }
-
       .btn:active {
-        transform: translateY(0);
+        transform: scale(0.98);
+      }
+      .btn-secundario {
+        background-color: #6b7280;
+        margin-top: 10px;
+      }
+      .btn-secundario:hover {
+        background-color: #4b5563;
+      }
+      .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .login-form input {
+        padding: 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 0.95rem;
+      }
+      .error {
+        color: #dc2626;
+        font-size: 0.85rem;
+        min-height: 1.2em;
+        margin-top: 8px;
+      }
+      .hidden {
+        display: none;
       }
     </style>
   </head>
   <body>
     <div class="card">
-      <div class="top-bar">
-        <h1 class="app-title">Panel de Control PWA</h1>
-        <!-- NODO RESPONDEDOR (Ubicación discreta en pequeño) -->
-        <div class="node-badge" id="nodo-name">Cargando...</div>
+      <div class="header">
+        <h1 class="title">Panel de Control PWA</h1>
+        <span class="badge" id="node-badge">Conectando...</span>
       </div>
 
-      <!-- Valor principal destacado: ID de la Sesión Compartida -->
-      <div class="main-metric">
-        <div class="label">ID Sesión Compartida</div>
-        <div class="value" id="session-id">-</div>
+      <div id="vista-login">
+        <form class="login-form" id="login-form">
+          <input type="text" id="usuario" placeholder="Usuario" required />
+          <input type="password" id="clave" placeholder="Contraseña" required />
+          <button class="btn" type="submit">Iniciar sesión</button>
+        </form>
+        <div class="error" id="error-login"></div>
       </div>
 
-      <!-- Lista limpia de detalles secundarios -->
-      <div class="details-list">
-        <div class="detail-item">
-          <span>Peticiones registradas</span>
-          <strong id="session-views">-</strong>
+      <div id="vista-panel" class="hidden">
+        <div class="session-box">
+          <div class="session-label">ID Sesión Compartida</div>
+          <div class="session-id" id="session-id">------</div>
         </div>
-        <div class="detail-item">
-          <span>Puerto Activo</span>
-          <strong id="nodo-puerto">-</strong>
-        </div>
-        <div class="detail-item">
-          <span>Entorno / Respuesta</span>
-          <strong id="node-env">-</strong>
-        </div>
-      </div>
 
-      <button class="btn" onclick="probarNodo()">Probar Siguiente Nodo</button>
+        <div class="info-list">
+          <div class="info-item">
+            <span>Usuario autenticado</span>
+            <span class="info-value" id="usuario-info">--</span>
+          </div>
+          <div class="info-item">
+            <span>Peticiones registradas</span>
+            <span class="info-value" id="visit-count">0 visitas</span>
+          </div>
+          <div class="info-item">
+            <span>Puerto Activo</span>
+            <span class="info-value" id="port-info">:----</span>
+          </div>
+          <div class="info-item">
+            <span>Entorno / Respuesta</span>
+            <span class="info-value" id="env-info">-- (--ms)</span>
+          </div>
+        </div>
+
+        <button class="btn" id="fetch-btn">Probar Siguiente Nodo</button>
+        <button class="btn btn-secundario" id="logout-btn">
+          Cerrar sesión
+        </button>
+      </div>
     </div>
 
     <script>
       if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("/sw.js");
+        navigator.serviceWorker.register("/sw.js").then((reg) => {
+          reg.update();
+        });
+      }
+
+      const vistaLogin = document.getElementById("vista-login");
+      const vistaPanel = document.getElementById("vista-panel");
+
+      function mostrar(autenticado) {
+        vistaLogin.classList.toggle("hidden", autenticado);
+        vistaPanel.classList.toggle("hidden", !autenticado);
       }
 
       async function probarNodo() {
-        const startTime = performance.now();
+        const inicio = performance.now();
         try {
-          const res = await fetch("/api/info");
+          const res = await fetch("/api/info", {
+            credentials: "same-origin",
+            headers: { Accept: "application/json" },
+          });
           const data = await res.json();
-          const endTime = performance.now();
-          const latency = Math.round(endTime - startTime);
+          const ms = Math.round(performance.now() - inicio);
 
-          // Actualiza el nodo en el badge pequeño superior
-          document.getElementById("nodo-name").innerText = data.nodo;
+          document.getElementById("node-badge").textContent = data.nodo;
+          document.getElementById("session-id").textContent = data.sessionId;
+          document.getElementById("usuario-info").textContent =
+            data.usuario || "--";
+          document.getElementById("visit-count").textContent =
+            `${data.visitas} visitas`;
+          document.getElementById("port-info").textContent = `:${data.puerto}`;
+          document.getElementById("env-info").textContent =
+            `${data.env} (${ms}ms)`;
 
-          // Muestra los demás datos en el panel
-          document.getElementById("session-id").innerText = data.sessionId;
-          document.getElementById("session-views").innerText =
-            `${data.visitasEnSesion} visitas`;
-          document.getElementById("nodo-puerto").innerText = `:${data.puerto}`;
-          document.getElementById("node-env").innerText =
-            `${data.entorno} (${latency}ms)`;
+          mostrar(Boolean(data.usuario));
         } catch (err) {
-          document.getElementById("nodo-name").innerText = "Offline";
-          document.getElementById("session-id").innerText = "Error";
+          console.error("Error obteniendo respuesta del nodo:", err);
+          document.getElementById("node-badge").textContent = "Error";
         }
       }
+
+      document
+        .getElementById("login-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const errorBox = document.getElementById("error-login");
+          errorBox.textContent = "";
+
+          const res = await fetch("/api/login", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              usuario: document.getElementById("usuario").value,
+              clave: document.getElementById("clave").value,
+            }),
+          });
+
+          if (res.ok) {
+            probarNodo();
+          } else {
+            const data = await res.json();
+            errorBox.textContent = data.mensaje;
+          }
+        });
+
+      document
+        .getElementById("logout-btn")
+        .addEventListener("click", async () => {
+          await fetch("/api/logout", {
+            method: "POST",
+            credentials: "same-origin",
+          });
+          probarNodo();
+        });
+
+      document
+        .getElementById("fetch-btn")
+        .addEventListener("click", probarNodo);
 
       probarNodo();
     </script>

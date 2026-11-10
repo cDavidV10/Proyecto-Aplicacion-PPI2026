@@ -1,24 +1,32 @@
 import express from "express";
 import proxy from "express-http-proxy";
-import { createServer } from "http";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { config } from "./config.js";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const app = express();
-let currentIdx = 0;
+const PORT = process.env.PROXY_PORT || config.frontalPort;
+const targets = config.targetNodes;
+let nextNode = 0;
 
-// Balanceador Round-Robin entre los 3 nodos
-app.use((req, res, next) => {
-  const target = config.targetNodes[currentIdx];
-  currentIdx = (currentIdx + 1) % config.targetNodes.length;
+app.use(express.static(path.join(__dirname, "../client")));
 
-  return proxy(target)(req, res, next);
-});
+app.use(
+  "/api",
+  (req, res, next) => {
+    req.proxyTarget = targets[nextNode];
+    nextNode = (nextNode + 1) % targets.length;
+    next();
+  },
+  proxy((req) => req.proxyTarget, {
+    proxyReqPathResolver(req) {
+      return req.originalUrl;
+    },
+  }),
+);
 
-const server = createServer(app);
-
-server.listen(config.frontalPort, () => {
-  console.log(
-    `🌐 Servidor Frontal activo en http://localhost:${config.frontalPort}`,
-  );
-  console.log(`🔀 Redirigiendo entre nodos: ${config.targetNodes.join(", ")}`);
+app.listen(PORT, () => {
+  console.log(`[PROXY BALANCEADOR] Corriendo en http://localhost:${PORT}`);
 });
